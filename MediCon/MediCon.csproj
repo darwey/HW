@@ -754,6 +754,8 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\JSPrintManager.d.ts" />
+    <Content Include="Scripts\JSPrintManager.js" />
     <Content Include="Scripts\js\dataTables\datatables.min.css" />
     <Content Include="Scripts\js\dataTables\datatables.min.js" />
     <Content Include="Scripts\js\Moment\moment-timezone-with-data.min.js" />
@@ -826,6 +828,7 @@
     <Content Include="Views\Hospital\Scheduler.cshtml" />
     <Content Include="Views\PhysicianCalendar\Calendar.cshtml" />
     <Content Include="Views\PatientCalendar\Appointment.cshtml" />
+    <Content Include="Views\Home\Scanner.cshtml" />
     <Content Include="Views\Prescriptions\List.cshtml" />
   </ItemGroup>
   <ItemGroup>
