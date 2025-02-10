@@ -221,8 +221,7 @@
     }
 
     s.saveUser = function (a) {
-
-        if (!usern.test(a.username)) {
+        if (!usern.test(a.username) && a.userTypeID != '3') {
                 swal({
                     title: "Username Error!",
                     text: "Must be minimum of 6 characters! ",
@@ -230,7 +229,7 @@
                 });
         }
 
-        else if (a.password != a.cpassword) {
+        else if (a.password != a.cpassword && a.userTypeID != '3') {
                 swal({
                     title: "Password does not match!",
                     text: "",
@@ -238,7 +237,7 @@
                 });
         }
 
-        else if (!pass.test(a.password)) {
+        else if (!pass.test(a.password) && a.userTypeID != '3') {
                 swal({
                     title: "Password Error!",
                     text: "Must contain atleast one alphabetical, one numeric character and minimum of 6 characters! ",
@@ -259,7 +258,7 @@
                         else {
 
                             a.sex = a.sex == 'MALE' ? 1 : 0;
-
+                     
                             h.post('../SystemUser/saveUser', a).then(function (d)
                             {
                                 if (d.data.responseCode == 200)

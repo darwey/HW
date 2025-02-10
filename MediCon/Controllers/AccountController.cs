@@ -77,6 +77,7 @@ namespace MediCon.Controllers
                 Session["lastName"] = granted.personnel_lastName;
                 Session["extName"] = granted.personnel_extName;
                 Session["position"] = granted.position;
+                Session["serviceID"] = granted.serviceID;
                 Session["userTypeID"] = granted.userTypeID;
                 Session["hospitalID"] = granted.userTypeID == "1" || granted.userTypeID == "10" ? "Admin" : granted.hospitalID;
 

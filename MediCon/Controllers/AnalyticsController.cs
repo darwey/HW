@@ -26,24 +26,24 @@ namespace MediCon.Controllers
             return View();
         }
 
-        public ActionResult getMorbidityStats()
-        {
-            try
-            {
-                var MRHstats = dbMed.fn_DashboardMRH();
-                var result = dbMed.fn_DashboardMorbidity();
-                var morbiditylist = dbMed.Diagnosis.Where(a => a.diagnoseType == "MC").OrderBy(b => b.diagnoseName).ToList();
-                var Papsmear = dbMed.PapsmearBreastExams.Where(a => a.isPapsmear == true).Count();
-                var BreastExam = dbMed.PapsmearBreastExams.Where(a => a.isBreastExam == true).Count();
-                var Dental = dbMed.fn_DashboardDental();
+        //public ActionResult getMorbidityStats()
+        //{
+        //    try
+        //    {
+        //        var MRHstats = dbMed.fn_DashboardMRH();
+        //        var result = dbMed.fn_DashboardMorbidity();
+        //        var morbiditylist = dbMed.Diagnosis.Where(a => a.diagnoseType == "MC").OrderBy(b => b.diagnoseName).ToList();
+        //        var Papsmear = dbMed.PapsmearBreastExams.Where(a => a.isPapsmear == true).Count();
+        //        var BreastExam = dbMed.PapsmearBreastExams.Where(a => a.isBreastExam == true).Count();
+        //        var Dental = dbMed.fn_DashboardDental();
 
-                return Json(new {stats = result, morbiditylist = morbiditylist, mrhCount = MRHstats, papsCount = Papsmear, breastCount = BreastExam, dentalCount = Dental}, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception e)
-            {
-                return Json(new { status = "error", msg = "Something went wrong. Failed to retrieve vital signs information.", exceptionMessage = e.InnerException.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
+        //        return Json(new {stats = result, morbiditylist = morbiditylist, mrhCount = MRHstats, papsCount = Papsmear, breastCount = BreastExam, dentalCount = Dental}, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return Json(new { status = "error", msg = "Something went wrong. Failed to retrieve vital signs information.", exceptionMessage = e.InnerException.Message }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
         public ActionResult getLabPrice()
         {
@@ -61,11 +61,11 @@ namespace MediCon.Controllers
             return Json(datas, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult getSexAnalytics()
-        {
-            var data = dbMed.fn_DashboardAnalytics();
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
+        //public ActionResult getSexAnalytics()
+        //{
+        //    var data = dbMed.fn_DashboardAnalytics();
+        //    return Json(data, JsonRequestBehavior.AllowGet);
+        //}
 
 
     }

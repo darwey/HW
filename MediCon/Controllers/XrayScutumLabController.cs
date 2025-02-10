@@ -83,22 +83,22 @@ namespace MediCon.Controllers
             }
         }
 
-        public ActionResult getLabReqClients(string date)
-        {
-            try
-            {
-                DateTime dateStart = DateTime.Parse(date);
-                DateTime dateEnd = DateTime.Parse(date + " 23:59:59");
+        //public ActionResult getLabReqClients(string date)
+        //{
+        //    try
+        //    {
+        //        DateTime dateStart = DateTime.Parse(date);
+        //        DateTime dateEnd = DateTime.Parse(date + " 23:59:59");
 
-                var client = dbMed.fn_getXrayLabReqClients().Where(a => a.labReqDT >= dateStart && a.labReqDT <= dateEnd).OrderByDescending(x => x.labReqDT).ToList();
+        //        var client = dbMed.fn_getXrayLabReqClients().Where(a => a.labReqDT >= dateStart && a.labReqDT <= dateEnd).OrderByDescending(x => x.labReqDT).ToList();
 
-                return Json(client, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return Json(new { status = "error", msg = "An error occured while saving your data.", error = ex }, JsonRequestBehavior.AllowGet);
-            }
-        }
+        //        return Json(client, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Json(new { status = "error", msg = "An error occured while saving your data.", error = ex }, JsonRequestBehavior.AllowGet);
+        //    }
+        //}
 
          [HttpPost]
         public ActionResult saveUpdatesLabReq(Xray_ScutumLabRequest labReq)

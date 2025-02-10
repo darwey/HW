@@ -1,0 +1,271 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .table-wrapper-scroll-y {
+        display: block;
+    }
+
+    .my-custom-scrollbar {
+        position: relative;
+        /*height: 250px !important;*/
+        overflow: auto;
+        border: none;
+        width: 100%;
+    }
+
+    th {
+        position: sticky;
+        position: -webkit-sticky;
+        top: 0px;
+        z-index: 2;
+    }
+</style>
+
+<div ng-controller="InitReadingCtrl">
+    <!-- HEADER -->
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-lg-6">
+            <h2>Initial Reading</h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="">Medical Consultation</a>
+                </li>
+                <li class="active">
+                    <a href=""><strong>Reading</strong></a>
+                </li>
+                @*<li class="active">
+                        <strong>Clinical Screening</strong>
+                    </li>*@
+            </ol>
+        </div>
+    </div>
+    <!-- /HEADER -->
+
+    <div class="wrapper wrapper-content" ng-show="hideTable">
+        <!-- QR CODE INFO FORM -->
+        <div class="animated fadeInRight ecommerce">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title text-center">
+                    <h3><strong>INITIAL READING</strong></h3>
+                </div>
+                <div class="ibox-content">
+                    <p id="sessionUserTypeID" class="hidden">@Session["userTypeID"].ToString()</p>
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12">
+                            <form name="DateFilter" id="DateFilter" class="form-horizontal">
+                                <div class="form-group">
+                                    <label class="col-lg-2 col-md-3 col-sm-4 col-xs-12 control-label" for="xrayFilterDate" style="white-space: nowrap;">Consultation Date:</label>
+                                    <div class="col-lg-3 col-md-4 col-sm-8 col-xs-12">
+                                        <div class="input-group">
+                                            <input type="date" id="FilterDate" required name="FilterDate" style="text-transform: uppercase;" ng-model="FilterDate" class="form-control">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-primary" type="submit" ng-click="!DateFilter.$invalid ? filterResult(FilterDate):''">
+                                                    <i class="fa fa-search"></i> Search
+                                                </button>
+                                            </span>
+                                            <span class="input-group-btn">
+                                                <button disabled id="printButton" class="btn btn-success" type="submit" ng-click="!DateFilter.$invalid ? printResult(FilterDate):''" style="border-left: 1px solid #ccc;">
+                                                    <i class="fa fa-print"></i> Print
+                                                </button>
+                                            </span>
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-danger" type="button" ng-click="clearFilter()">
+                                                    <i class="fa fa-times"></i> Clear
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="panel panel-success">
+                        <div class="panel-heading text-center">
+                            <h4><strong>LIST OF DIAGNOSED PATIENTS</strong></h4>
+                        </div>
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table id="labexam_tbl" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Lab Results</th>
+                                            <th>First name</th>
+                                            <th>Sex</th>
+                                            <th>Age</th>
+                                            <th>Physician</th>
+                                            @*<th>Age the 2nd</th>*@
+                                            <th>Tested</th>
+                                            <th>With Result</th>
+                                            <th>Status</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will go here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrapper wrapper-content" ng-show="showLabResult">
+        <div class="animated fadeInRight ecommerce">
+            <div class="ibox float-e-margins">
+                <button class="btn btn-warning btn-sm" ng-click="back()"><i class="fa fa-arrow-left" aria-hidden="true"></i> Back</button>
+            </div>
+            <div class="ibox-content">
+                <div class="panel-heading">
+                    <div class="row">
+                        <form name="INIT_READING" class="form-horizontal">
+                            <div class="form-group">
+                                <!-- Patient Name Label and Value -->
+                                <label class="col-lg-2 col-md-3 col-sm-4 col-xs-12 control-label" for="patientName">Employee's Name</label>
+                                <div class="col-lg-10 col-md-9 col-sm-8 col-xs-12">
+                                    <strong>
+                                        <label style="font-size:16px;" class="form-control-static" for="patientName">
+                                            {{patientName}}
+                                        </label>
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <!-- Status Label and Dropdown -->
+                                <label class="col-lg-2 col-md-3 col-sm-4 col-xs-12 control-label" for="status">Status</label>
+                                <div class="col-lg-3 col-md-3 col-sm-8 col-xs-12">
+                                    <select required class="form-control" ng-model="ir.initReading" id="status">
+                                        <option disabled value="">Select status</option>
+                                        <option value="1">NORMAL</option>
+                                        <option value="2">ABNORMAL</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <!-- Remarks Label and Textarea -->
+                                <label class="col-lg-2 col-md-3 col-sm-4 col-xs-12 control-label" for="remarks">Remarks</label>
+                                <div class="col-lg-8 col-md-8 col-sm-6 col-xs-12">
+                                    <textarea placeholder="Remarks" class="form-control" ng-model="ir.remarks" id="remarks" rows="4"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <!-- Submit Button -->
+                                <div class="col-lg-10 col-lg-offset-2 col-md-9 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12">
+                                    <button class="btn btn-primary" type="submit" ng-click="!INIT_READING.$invalid ? irBtnSave(ir) : ''">
+                                        <i class="fa fa-save"></i> Save
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
+
+                <div class="panel-body">
+                    
+                    <div class="table-wrapper-scroll-y my-custom-scrollbar">
+                        <table class="table table-stripped table-hover table-bordered" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="color: #1ab394;">#</th>
+                                    <th style="color: #1ab394;">Laboratory Test</th>
+                                    <th style="color: #1ab394;" class="text-center">Service</th>
+                                    <th style="color: #1ab394;" class="text-center">Tested</th>
+                                    <th style="color: #1ab394;" class="text-center">Date & Time Tested</th>
+                                    <th style="color: #1ab394;" class="text-center">With Result</th>
+                                    <th style="color: #1ab394;" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="text-center" ng-show="medHistLoader_modal">
+                                    <td colspan="7">
+                                        <div class="sk-spinner sk-spinner-double-bounce">
+                                            <div class="sk-double-bounce1"></div>
+                                            <div class="sk-double-bounce2"></div>
+                                        </div>
+                                        <text><i>Please wait, we are loading your data...</i></text>
+                                    </td>
+                                </tr>
+                                <tr class="text-center" ng-show="labHistoryList.length == 0 && bpLoader == false">
+                                    <td colspan="7">
+                                        <label class="text-danger">NO INFORMATION FOUND!</label>
+                                    </td>
+                                </tr>
+                                <tr ng-repeat="dh in labHistoryList">
+                                    <td class="text-center">{{$index + 1}}</td>
+                                    <td>
+                                        {{dh.labTestID == 'L0004' ? dh.labTestName + ' (' + dh.ecgDesc + ')' :
+                                        dh.labTestID == 'L0006' ? dh.labTestName + ' (' + dh.xrayDesc + ')' :
+                                        dh.labTestID == 'L0023' ? dh.labTestName + ' (' + dh.ultrasoundDesc + ')' : dh.labTestName}}
+                                    </td>
+                                    <td class="text-center">{{dh.MRDiagnosisID == null ? dh.ConsultServiceName : dh.refServiceName}}</td>
+                                    <td class="text-center">{{dh.isTested == true ? 'Yes':'No'}}</td>
+                                    <td class="text-center">{{dh.dateTested == 'Invalid date' ? '':dh.dateTested}}</td>
+                                    <td class="text-center">
+                                        <p><span class="badge" ng-class="dh.isEncoded == true ? 'badge-info' : 'badge-danger'">{{dh.isEncoded == true ? 'Yes' : 'No'}}</span></p>
+                                    </td>
+                                    <td class="text-center"><button class="btn btn-primary btn-sm" ng-disabled="!dh.isEncoded" ng-click="viewLabResult(dh)"> Show </button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @*MODAL LAB RESULT*@
+    <div class="modal fade" id="modalLabResult">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-center">{{modalTitle}}</h4>
+                </div>
+                <div class="modal-body" style="height: 100%;">
+                    <div class="text-center" ng-show="labResultLoader">
+                        <div class="sk-spinner sk-spinner-double-bounce">
+                            <div class="sk-double-bounce1"></div>
+                            <div class="sk-double-bounce2"></div>
+                        </div>
+                    </div>
+                    @*<div class="row">
+                        <div class="col-sm-4 col-xs-4">
+                            <button class="btn btn-outline btn-primary pull-left" ng-click="navLabImg('prev')"><i class="fa fa-caret-left"></i> Prev</button>
+                        </div>
+                        <div class="col-sm-4 col-xs-4 text-center">
+                            <label>{{currentImgIndex + 1}} of {{imgCount}} Images/PDF</label>
+                        </div>
+                        <div class="col-sm-4 col-xs-4">
+                            <button class="btn btn-outline btn-primary pull-right" ng-click="navLabImg('next')">Next <i class="fa fa-caret-right"></i></button>
+                        </div>
+                    </div>*@
+                    @*<hr style="margin-top: 10px !important; margin-bottom: 10px !important;" />
+                    <small class="pull-left">{{displayFileName}}</small><button class="btn btn-sm btn-danger pull-right" ng-click="deleteLabImg()"><i class="fa fa-trash-o"></i></button>*@
+                    <div id="labResult" ng-show="!labResultLoader" style="height:80vh; width:100%; margin-bottom:10px;" class="img-responsive avatar-view"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @*MODAL LAB RESULT*@
+
+</div>
+
+@section scripts
+{
+    <script src="~/Scripts/js/pdf-lib/pdf-lib.min.js"></script>
+    <script src="~/Scripts/AngularJS/InitReading/InitReading.js?v=1.0"></script>
+}

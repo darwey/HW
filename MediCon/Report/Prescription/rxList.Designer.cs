@@ -33,6 +33,7 @@ namespace MediCon.Report.Prescription
             this.textBox16 = new Telerik.Reporting.TextBox();
             this.textBox8 = new Telerik.Reporting.TextBox();
             this.textBox13 = new Telerik.Reporting.TextBox();
+            this.rxListDataSrc = new Telerik.Reporting.SqlDataSource();
             this.pageFooterSection1 = new Telerik.Reporting.PageFooterSection();
             this.pictureBox2 = new Telerik.Reporting.PictureBox();
             this.PhysicianName = new Telerik.Reporting.TextBox();
@@ -49,7 +50,6 @@ namespace MediCon.Report.Prescription
             this.textBox3 = new Telerik.Reporting.TextBox();
             this.textBox4 = new Telerik.Reporting.TextBox();
             this.textBox6 = new Telerik.Reporting.TextBox();
-            this.rxListDataSrc = new Telerik.Reporting.SqlDataSource();
             ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
             // 
             // textBox39
@@ -79,9 +79,9 @@ namespace MediCon.Report.Prescription
             // 
             // table1
             // 
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(0.62185996770858765D)));
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(1.7836494445800781D)));
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(0.50000011920928955D)));
+            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Cm(1.5795242786407471D)));
+            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Cm(4.5304694175720215D)));
+            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Cm(1.2700002193450928D)));
             this.table1.Body.Rows.Add(new Telerik.Reporting.TableBodyRow(Telerik.Reporting.Drawing.Unit.Inch(0.24305544793605804D)));
             this.table1.Body.Rows.Add(new Telerik.Reporting.TableBodyRow(Telerik.Reporting.Drawing.Unit.Inch(0.25277784466743469D)));
             this.table1.Body.SetCellContent(1, 0, this.textBox19);
@@ -116,7 +116,7 @@ namespace MediCon.Report.Prescription
             tableGroup4.ReportItem = this.textBox39;
             tableGroup4.Sortings.Add(new Telerik.Reporting.Sorting("=Fields.rxID", Telerik.Reporting.SortDirection.Asc));
             this.table1.RowGroups.Add(tableGroup4);
-            this.table1.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(2.9888429641723633D), Telerik.Reporting.Drawing.Unit.Inch(0.48749995231628418D));
+            this.table1.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Cm(7.5916609764099121D), Telerik.Reporting.Drawing.Unit.Inch(0.49583327770233154D));
             // 
             // textBox19
             // 
@@ -166,6 +166,14 @@ namespace MediCon.Report.Prescription
             this.textBox13.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Top;
             this.textBox13.StyleName = "";
             this.textBox13.Value = resources.GetString("textBox13.Value");
+            // 
+            // rxListDataSrc
+            // 
+            this.rxListDataSrc.ConnectionString = "Medicon";
+            this.rxListDataSrc.Name = "rxListDataSrc";
+            this.rxListDataSrc.Parameters.AddRange(new Telerik.Reporting.SqlDataSourceParameter[] {
+            new Telerik.Reporting.SqlDataSourceParameter("@rxID", System.Data.DbType.String, "=Parameters.rxID.Value")});
+            this.rxListDataSrc.SelectCommand = resources.GetString("rxListDataSrc.SelectCommand");
             // 
             // pageFooterSection1
             // 
@@ -368,14 +376,6 @@ namespace MediCon.Report.Prescription
             this.textBox6.Style.Font.Size = Telerik.Reporting.Drawing.Unit.Point(7D);
             this.textBox6.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Middle;
             this.textBox6.Value = "= ToUpper(Parameters.PatientAddress.Value)";
-            // 
-            // rxListDataSrc
-            // 
-            this.rxListDataSrc.ConnectionString = "Medicon";
-            this.rxListDataSrc.Name = "rxListDataSrc";
-            this.rxListDataSrc.Parameters.AddRange(new Telerik.Reporting.SqlDataSourceParameter[] {
-            new Telerik.Reporting.SqlDataSourceParameter("@rxID", System.Data.DbType.String, "=Parameters.rxID.Value")});
-            this.rxListDataSrc.SelectCommand = resources.GetString("rxListDataSrc.SelectCommand");
             // 
             // rxList
             // 

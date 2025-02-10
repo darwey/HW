@@ -39,6 +39,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.6.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\packages\BouncyCastle.1.8.6.1\lib\BouncyCastle.Crypto.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="itextsharp, Version=5.5.13.2, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <HintPath>..\packages\iTextSharp.5.5.13.2\lib\itextsharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -170,18 +178,23 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="Classes\IDgenerator.cs" />
+    <Compile Include="Classes\Recipient.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AnalyticsController.cs" />
     <Compile Include="Controllers\ClinicalScreeningController.cs" />
+    <Compile Include="Controllers\ClinicPatientAppointmentController.cs" />
     <Compile Include="Controllers\DentalController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\HospitalController.cs" />
+    <Compile Include="Controllers\InitialReadingController.cs" />
     <Compile Include="Controllers\LaboratoryController.cs" />
     <Compile Include="Controllers\LaboratoryResultController.cs" />
     <Compile Include="Controllers\LabtestController.cs" />
     <Compile Include="Controllers\MaleReproController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
+    <Compile Include="Controllers\MasterListController.cs" />
     <Compile Include="Controllers\MedicalConsultationController.cs" />
+    <Compile Include="Controllers\PackageLabTestController.cs" />
     <Compile Include="Controllers\PapsmearBreastExamController.cs" />
     <Compile Include="Controllers\PatientCalendarController.cs" />
     <Compile Include="Controllers\PharmacyController.cs" />
@@ -190,15 +203,16 @@
     <Compile Include="Controllers\PrintController.cs" />
     <Compile Include="Controllers\ProductsController.cs" />
     <Compile Include="Controllers\QRPersonalInfoController.cs" />
+    <Compile Include="Controllers\ReadingGlassesController.cs" />
     <Compile Include="Controllers\RectalDiagnosisController.cs" />
     <Compile Include="Controllers\SendSMSController.cs" />
     <Compile Include="Controllers\SessionTimeoutAttribute.cs" />
     <Compile Include="Controllers\SystemUserController.cs" />
     <Compile Include="Controllers\UserAccess.cs" />
     <Compile Include="Controllers\VitalSignsController.cs" />
+    <Compile Include="Controllers\XrayReportController.cs" />
     <Compile Include="Controllers\XrayResultController.cs" />
     <Compile Include="Controllers\XrayScutumLabController.cs" />
-    <Compile Include="Controllers\XrayScutumResultController.cs" />
     <Compile Include="Controllers\XrayTaggingController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -216,11 +230,17 @@
     <Compile Include="Models\Brgy.cs">
       <DependentUpon>DCIMS.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\CBC.cs">
-      <DependentUpon>Medicon.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\CityMun.cs">
       <DependentUpon>DCIMS.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ClinicPatientAppointment.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ClinicTimeSlot.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ClinicUnavailability.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Consultation.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
@@ -246,13 +266,22 @@
     <Compile Include="Models\DietCounseling.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\ECG.cs">
-      <DependentUpon>Medicon.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\EditRemark.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\Fecalysi.cs">
+    <Compile Include="Models\EyeCare.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\fnSputumTransmittal_Result.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\fn_ActualEmpTestedForLab_Result.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\fn_availableTimeSlot_Result.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\fn_ConsultLabExam_Result.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\fn_DashboardAnalytics_Result.cs">
@@ -265,6 +294,9 @@
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\fn_DashboardMRH_Result.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\fn_getActualLabTestDates_Result.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\fn_getDiagnoseClients_Result.cs">
@@ -300,16 +332,28 @@
     <Compile Include="Models\fn_getXrayTagClients_Result.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\fn_hris_consultationHistory_Result.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\fn_hris_laboratoryHistory_Result.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\fn_hris_prescriptionHistory_Result.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\fn_LabSchedMasterList_Result.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\fn_MedicineList_Result.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\fn_Prescriptions_Result.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\fn_vitalSignList_Result.cs">
+    <Compile Include="Models\fn_ScheduledEmpForLab_Result.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\HbA1c.cs">
+    <Compile Include="Models\fn_vitalSignList_Result.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Hospital.cs">
@@ -334,6 +378,9 @@
       <DependentUpon>HRISDB.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\IdentityModels.cs" />
+    <Compile Include="Models\InitialReading.cs">
+      <DependentUpon>Medicon.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\LaboratoryExam.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
@@ -351,9 +398,6 @@
     </Compile>
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\Measurement.cs">
-      <DependentUpon>Medicon.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\MedCon_Xray.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\MedicalPrescription.cs">
@@ -419,34 +463,16 @@
     <Compile Include="Models\spOT_MedicineDispensing_Result.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\sp_getXrayClientRecord_Result.cs">
+    <Compile Include="Models\sp_ConsultLabExam_Result.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\sp_getXrayClientScreened_Result.cs">
-      <DependentUpon>Medicon.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\sp_helpdiagramdefinition_Result.cs">
-      <DependentUpon>Medicon.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\sp_helpdiagrams_Result.cs">
-      <DependentUpon>Medicon.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\sysdiagram.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Temp_LabPrices.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Temp_Morbidity.cs">
-      <DependentUpon>Medicon.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\TwoDecho.cs">
-      <DependentUpon>Medicon.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\Ultrasound.cs">
-      <DependentUpon>Medicon.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\Urinalysi.cs">
       <DependentUpon>Medicon.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\UserType.cs">
@@ -493,11 +519,29 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Report\InitialReading\InitialReadingRpt.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Report\InitialReading\InitialReadingRpt.Designer.cs">
+      <DependentUpon>InitialReadingRpt.cs</DependentUpon>
+    </Compile>
     <Compile Include="Report\LRRF\LRRFRpt.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Report\LRRF\LRRFRpt.Designer.cs">
       <DependentUpon>LRRFRpt.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Report\LRRF\SputumTransmittal.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Report\LRRF\SputumTransmittal.Designer.cs">
+      <DependentUpon>SputumTransmittal.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Report\MasterList\PrintMasterList.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Report\MasterList\PrintMasterList.Designer.cs">
+      <DependentUpon>PrintMasterList.cs</DependentUpon>
     </Compile>
     <Compile Include="Report\MediConRpt.aspx.cs">
       <DependentUpon>MediConRpt.aspx</DependentUpon>
@@ -629,9 +673,13 @@
     <Content Include="Content\ISPINIA\img\bgHealth-01.jpg" />
     <Content Include="Content\ISPINIA\img\header-profile.png" />
     <Content Include="Content\ISPINIA\img\IMG-c7ec0d2f005537a753a3258aad69b174-V.jpg" />
+    <Content Include="Content\ISPINIA\img\Letter Foot.png" />
+    <Content Include="Content\ISPINIA\img\Letter Head 2.png" />
+    <Content Include="Content\ISPINIA\img\Letter Head.png" />
     <Content Include="Content\ISPINIA\img\MEDCON-01.png" />
     <Content Include="Content\ISPINIA\img\MEDCON2-01.png" />
     <Content Include="Content\ISPINIA\img\MedconICon-01.ico" />
+    <Content Include="Content\ISPINIA\img\MEDICON-02.png" />
     <Content Include="Content\ISPINIA\img\myIcon.ico" />
     <Content Include="Content\ISPINIA\img\profile.png" />
     <Content Include="Content\ISPINIA\img\profile_64.png" />
@@ -686,12 +734,15 @@
     <Content Include="Report\MediConRpt.aspx" />
     <Content Include="Scripts\AngularJS\Analytics\AnalyticsCtrl.js" />
     <Content Include="Scripts\AngularJS\angular.min.js" />
+    <Content Include="Scripts\AngularJS\ClinicPatientAppointment\ClinicPatientAppointment.js" />
     <Content Include="Scripts\AngularJS\Dental\OralExam.js" />
     <Content Include="Scripts\AngularJS\Dental\ToothExtraction.js" />
     <Content Include="Scripts\AngularJS\Hospital\Scheduler.js" />
+    <Content Include="Scripts\AngularJS\InitReading\InitReading.js" />
     <Content Include="Scripts\AngularJS\LabResult\LabResult.js" />
     <Content Include="Scripts\AngularJS\Labtest\Labtest.js" />
     <Content Include="Scripts\AngularJS\MaleRepro\MaleRepro.js" />
+    <Content Include="Scripts\AngularJS\MasterList\MasterListCtrl.js" />
     <Content Include="Scripts\AngularJS\MedicalConsultation\MedicalConsultation.js" />
     <Content Include="Scripts\AngularJS\MedConApp.js" />
     <Content Include="Scripts\AngularJS\Medicines\MedicineProducts.js" />
@@ -699,6 +750,7 @@
     <Content Include="Scripts\AngularJS\PatientCalendar\PatientCalendar.js" />
     <Content Include="Scripts\AngularJS\Pharmacy\pharmacyDispensing.js" />
     <Content Include="Scripts\AngularJS\PhysicianCalendar\PhysicianCalendar.js" />
+    <Content Include="Scripts\AngularJS\ReadingGlasses\ReadingGlasses.js" />
     <Content Include="Scripts\AngularJS\RectalDiagnosis\RectalDiagnosis.js" />
     <Content Include="Scripts\AngularJS\RX\RxCtrl.js" />
     <Content Include="Scripts\AngularJS\Utility\Laboratory.js" />
@@ -706,9 +758,9 @@
     <Content Include="Scripts\AngularJS\Utility\UserManagement.js" />
     <Content Include="Scripts\AngularJS\VitalSigns\VitalSigns.js" />
     <Content Include="Scripts\AngularJS\Xray\ClinicalScreening.js" />
+    <Content Include="Scripts\AngularJS\Xray\XrayReport.js" />
     <Content Include="Scripts\AngularJS\Xray\XrayResult.js" />
     <Content Include="Scripts\AngularJS\Xray\XrayScutumLab.js" />
-    <Content Include="Scripts\AngularJS\Xray\XrayScutumResult.js" />
     <Content Include="Scripts\AngularJS\Xray\XrayTagging.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -761,6 +813,7 @@
     <Content Include="Scripts\js\Moment\moment-timezone-with-data.min.js" />
     <Content Include="Scripts\js\Moment\moment.js" />
     <Content Include="Scripts\js\Moment\moment.min.js" />
+    <Content Include="Scripts\js\pdf-lib\pdf-lib.min.js" />
     <Content Include="Scripts\js\QRScan\instascan.min.js" />
     <Content Include="Scripts\js\select2\select2.full.min.js" />
     <Content Include="Scripts\js\select2\select2.min.css" />
@@ -824,12 +877,17 @@
     <Content Include="Views\XrayTagging\Tag.cshtml" />
     <Content Include="Views\XrayScutumLab\Form2A.cshtml" />
     <Content Include="Views\XrayResult\Index.cshtml" />
-    <Content Include="Views\XrayScutumResult\Result.cshtml" />
     <Content Include="Views\Hospital\Scheduler.cshtml" />
     <Content Include="Views\PhysicianCalendar\Calendar.cshtml" />
     <Content Include="Views\PatientCalendar\Appointment.cshtml" />
     <Content Include="Views\Home\Scanner.cshtml" />
     <Content Include="Views\Prescriptions\List.cshtml" />
+    <Content Include="Views\ReadingGlasses\Index.cshtml" />
+    <Content Include="Views\MasterList\LabSched.cshtml" />
+    <Content Include="Views\XrayReport\Report.cshtml" />
+    <Content Include="Views\ClinicPatientAppointment\Index.cshtml" />
+    <Content Include="Views\InitialReading\Index.cshtml" />
+    <Content Include="Views\PackageLabTest\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -853,8 +911,17 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Report\InitialReading\InitialReadingRpt.resx">
+      <DependentUpon>InitialReadingRpt.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Report\LRRF\LRRFRpt.resx">
       <DependentUpon>LRRFRpt.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Report\LRRF\SputumTransmittal.resx">
+      <DependentUpon>SputumTransmittal.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Report\MasterList\PrintMasterList.resx">
+      <DependentUpon>PrintMasterList.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Report\Prescription\Prescription.resx">
       <DependentUpon>Prescription.cs</DependentUpon>

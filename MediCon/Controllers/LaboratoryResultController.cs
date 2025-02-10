@@ -8,6 +8,10 @@ using System.Data.Entity;
 using MediCon.ModelTemp;
 using MediCon.Classes;
 using MediCon.Models;
+using System.IO;
+using Microsoft.Owin;
+using System.Drawing;
+using iTextSharp.text.pdf;
 
 namespace MediCon.Controllers
 {
@@ -15,6 +19,8 @@ namespace MediCon.Controllers
     public class LaboratoryResultController : Controller
     {
         MediconEntities dbMed = new MediconEntities();
+        //private string fileuploadDir = @"D:\DavNor Health & Wellness\LaboratoryResults\";
+        private string fileuploadDir = @"C:\Users\ACER\Documents\LaboratoryResults\";
 
         [UserAccess]
         // GET: LaboratoryResult
@@ -23,456 +29,6 @@ namespace MediCon.Controllers
             return View();
         }
 
-        public ActionResult saveBloodChemResult(List<BloodChem> result, string medTech, string pathologist, bool isUpdating, EditRemarks EditRemarks)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-
-                else
-                {
-                    foreach (var item in result)
-                    {
-                        if (isUpdating)
-                        {
-                            var findBC = dbMed.BloodChems.SingleOrDefault(a => a.bloodChemID == item.bloodChemID);
-                            findBC.result = item.result;
-                            dbMed.Entry(findBC).State = EntityState.Modified;
-                        }
-
-                        else
-                        {
-                            var bcID = new IDgenerator(item.labID);
-
-                            // SAVE LAB RESULT OF BLOOD CHEM
-                            item.bloodChemID = bcID.generateID.Substring(0, 15);
-                            item.dateTimeLog = DateTime.Now;
-                            item.personnelID = Session["personnelID"].ToString();
-                            dbMed.BloodChems.Add(item);
-
-                            // SAVE TAGGING OF TRUE TO ISENCODED FIELD (LABORATORY EXAM)
-                            var findLab = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == item.labID);
-                            findLab.isEncoded = true;
-                            findLab.medtech = medTech;
-                            findLab.pathologist = pathologist;
-                            findLab.dateEncoded = DateTime.Now;
-                            dbMed.Entry(findLab).State = EntityState.Modified;
-                        }
-                    }
-
-                    // UPDATING MEDICAL PERSONNEL AND RECORD UPDATE REMARKS
-                    if (isUpdating)
-                    {
-                        var labID = result[0].labID;
-                        var labRec = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == labID);
-                        labRec.medtech = medTech;
-                        labRec.pathologist = pathologist;
-                        dbMed.Entry(labRec).State = EntityState.Modified;
-
-                        var edited = new EditRemark();
-                        string temp = Convert.ToString(DateTime.Now);
-                        var editID = new IDgenerator(temp);
-
-                        edited.editID = editID.generateID.Substring(0, 15);
-                        edited.labID = labID;
-                        edited.remarks = EditRemarks.remarks;
-                        edited.dateEdited = DateTime.Now;
-                        edited.editedBy = Session["personnelID"].ToString();
-                        dbMed.EditRemarks.Add(edited);
-                    }
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        public ActionResult saveCBC(CBC result, string medTech, string pathologist)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var cbcID = new IDgenerator(result.labID);
-
-                    // SAVE LAB RESULT OF BLOOD CHEM
-                    result.cbcID = cbcID.generateID.Substring(0, 15);
-                    result.dateTimeLog = DateTime.Now;
-                    result.personnelID = Session["personnelID"].ToString();
-                    dbMed.CBCs.Add(result);
-
-                    // SAVE TAGGING OF TRUE TO ISENCODED FIELD (LABORATORY EXAM)
-                    var findLab = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLab.isEncoded = true;
-                    findLab.medtech = medTech;
-                    findLab.pathologist = pathologist;
-                    findLab.dateEncoded = DateTime.Now;
-                    dbMed.Entry(findLab).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        public ActionResult editCBC([Bind(Exclude = "dateTimeLog,dateEdited")] CBC result, EditRemarks EditRemarks, string medTech, string pathologist)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-
-                    var data = dbMed.CBCs.Where(e => e.labID == result.labID).FirstOrDefault();
-
-                    data.wbc = result.wbc;
-                    data.neu = result.neu;
-                    data.lym = result.lym;
-                    data.mon = result.mon;
-                    data.eos = result.eos;
-                    data.bas = result.bas;
-                    data.rbc = result.rbc;
-                    data.hgb = result.hgb;
-                    data.hct = result.hct;
-                    data.mcv = result.mcv;
-                    data.mch = result.mch;
-                    data.plt = result.plt;
-                    dbMed.Entry(data).State = EntityState.Modified;
-
-                    
-                    var edited = new EditRemark();
-                    string temp = Convert.ToString(DateTime.Now);
-                    var editID = new IDgenerator(temp);
-
-                    edited.editID = editID.generateID.Substring(0, 15);
-                    edited.labID = data.labID;
-                    edited.remarks = EditRemarks.remarks;
-                    edited.dateEdited = DateTime.Now;
-                    edited.editedBy = Session["personnelID"].ToString();
-                    dbMed.EditRemarks.Add(edited);
-
-                    var findLabExam = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLabExam.medtech = medTech;
-                    findLabExam.pathologist = pathologist;
-                    dbMed.Entry(findLabExam).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        public ActionResult editUrinalysis([Bind(Exclude = "dateTimeLog,dateEdited")] Urinalysi result, EditRemarks EditRemarks, string medTech, string pathologist)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-
-                    var data = dbMed.Urinalysis.Where(e => e.labID == result.labID).FirstOrDefault();
-
-                    data.albumin = result.albumin;
-                    data.amourphousPhospates = result.amourphousPhospates;
-                    data.amourphousUrates = result.amourphousUrates;
-                    data.bacteria = result.bacteria;
-                    data.calciumOxalates = result.calciumOxalates;
-                    data.coarseGranular = result.coarseGranular;
-                    data.color = result.color;
-                    data.epithelialCells = result.epithelialCells;
-                    data.fineGranular = result.fineGranular;
-                    data.hyaline = result.hyaline;
-                    data.mucusThread = result.mucusThread;
-                    data.others = result.others;
-                    data.pregnancyTest = result.pregnancyTest;
-                    data.pusCells = result.pusCells;
-                    data.pusCellsCast = result.pusCellsCast;
-                    data.rbcCast = result.rbcCast;
-                    data.rbcCells = result.rbcCells;
-                    data.reaction = result.reaction;
-                    data.renalCells = result.renalCells;
-                    data.spGravity = result.spGravity;
-                    data.sugar = result.sugar;
-                    data.transparency = result.transparency;
-                    data.triplePhospates = result.triplePhospates;
-                    data.uricAcid = result.uricAcid;
-                    data.waxyCast = result.waxyCast;
-                    data.yeastCells = result.yeastCells;
-                    dbMed.Entry(data).State = EntityState.Modified;
-
-                    var edited = new EditRemark();
-                    string temp = Convert.ToString(DateTime.Now);
-                    var editID = new IDgenerator(temp);
-
-                    edited.editID = editID.generateID.Substring(0, 15);
-                    edited.labID = data.labID;
-                    edited.remarks = EditRemarks.remarks;
-                    edited.dateEdited = DateTime.Now;
-                    edited.editedBy = Session["personnelID"].ToString();
-                    dbMed.EditRemarks.Add(edited);
-
-                    var findLabExam = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLabExam.medtech = medTech;
-                    findLabExam.pathologist = pathologist;
-                    dbMed.Entry(findLabExam).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        public ActionResult saveUrinalysis(Urinalysi result, string medTech, string pathologist)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var urinalysisID = new IDgenerator(result.labID);
-
-                    // SAVE LAB RESULT OF BLOOD CHEM
-                    result.urinalysisID = urinalysisID.generateID.Substring(0, 15);
-                    result.dateTimeLog = DateTime.Now;
-                    result.personnelID = Session["personnelID"].ToString();
-                    dbMed.Urinalysis.Add(result);
-
-                    // SAVE TAGGING OF TRUE TO ISENCODED FIELD (LABORATORY EXAM)
-                    var findLab = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLab.isEncoded = true;
-                    findLab.medtech = medTech;
-                    findLab.pathologist = pathologist;
-                    findLab.dateEncoded = DateTime.Now;
-                    dbMed.Entry(findLab).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        [HttpPost]
-        public ActionResult saveECG(ECG result)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var ecgID = new IDgenerator(result.labID);
-
-                    // SAVE LAB RESULT OF FECALYSIS
-                    result.ECGID = ecgID.generateID.Substring(0, 15);
-                    result.dateTimeLog = DateTime.Now;
-                    result.personnelID = Session["personnelID"].ToString();
-                    dbMed.ECGs.Add(result);
-
-                    // SAVE TAGGING OF TRUE TO ISENCODED FIELD (LABORATORY EXAM)
-                    var findLab = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLab.isEncoded = true;
-                    findLab.dateEncoded = DateTime.Now;
-                    dbMed.Entry(findLab).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        [HttpPost]
-        public ActionResult editECG([Bind(Exclude = "dateTimeLog,dateEdited")] ECG result, EditRemarks EditRemarks)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var data = dbMed.ECGs.Where(e => e.labID == result.labID).FirstOrDefault();
-
-                    // EDIT LAB RESULT OF FECALYSIS
-                    data.findings = result.findings;
-                    dbMed.Entry(data).State = EntityState.Modified;
-
-                    // SAVE PERSON WHO EDIT THE RECORD
-                    var edited = new EditRemark();
-                    string temp = Convert.ToString(DateTime.Now);
-                    var editID = new IDgenerator(temp);
-
-                    edited.editID = editID.generateID.Substring(0, 15);
-                    edited.labID = data.labID;
-                    edited.remarks = EditRemarks.remarks;
-                    edited.dateEdited = DateTime.Now;
-                    edited.editedBy = Session["personnelID"].ToString();
-                    dbMed.EditRemarks.Add(edited);
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        [HttpPost]
-        public ActionResult saveFecalysis(Fecalysi result)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var fecalysisID = new IDgenerator(result.labID);
-
-                    // SAVE LAB RESULT OF FECALYSIS
-                    result.fecalysisID = fecalysisID.generateID.Substring(0, 15);
-                    result.dateTimeLog = DateTime.Now;
-                    result.personnelID = Session["personnelID"].ToString();
-                    dbMed.Fecalysis.Add(result);
-
-                    // SAVE TAGGING OF TRUE TO ISENCODED FIELD (LABORATORY EXAM)
-                    var findLab = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLab.isEncoded = true;
-                    findLab.dateEncoded = DateTime.Now;
-                    dbMed.Entry(findLab).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        [HttpPost]
-        public ActionResult editFecalysis([Bind(Exclude = "dateTimeLog,dateEdited")] Fecalysi result, EditRemarks EditRemarks)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var data = dbMed.Fecalysis.Where(e => e.labID == result.labID).FirstOrDefault();
-
-                    // EDIT LAB RESULT OF FECALYSIS
-                    data.bacteria = result.bacteria;
-                    data.color = result.color;
-                    data.consistency = result.consistency;
-                    data.dateTimeLog = DateTime.Now;
-                    data.fatGlobules = result.fatGlobules;
-                    data.otherColorDesc = result.otherColorDesc;
-                    data.otherConDesc = result.otherConDesc;
-                    data.otherFindings = result.otherFindings;
-                    data.pusFrom = result.pusFrom;
-                    data.pusTo = result.pusTo;
-                    data.rbcFrom = result.rbcFrom;
-                    data.rbcTo = result.rbcTo;
-                    dbMed.Entry(data).State = EntityState.Modified;
-
-                    // SAVE PERSON WHO EDIT THE RECORD
-                    var edited = new EditRemark();
-                    string temp = Convert.ToString(DateTime.Now);
-                    var editID = new IDgenerator(temp);
-
-                    edited.editID = editID.generateID.Substring(0, 15);
-                    edited.labID = data.labID;
-                    edited.remarks = EditRemarks.remarks;
-                    edited.dateEdited = DateTime.Now;
-                    edited.editedBy = Session["personnelID"].ToString();
-                    dbMed.EditRemarks.Add(edited);
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-        
         public ActionResult getSpecialist()
         {
             var userList = dbMed.Personnels.Where(x => x.userTypeID == "3").Select(a => new
@@ -511,454 +67,253 @@ namespace MediCon.Controllers
             }
         }
 
-        public ActionResult getBloodChem(string labID)
-        {
-            var data = dbMed.BloodChems.Where(e => e.labID == labID)
-                        .Select(a => new { 
-                            a.bloodChemID,
-                            a.LabTestGroupID,
-                            a.result,
-                            labTestName = dbMed.LaboratoryGroupTests.FirstOrDefault(b => b.LabTestGroupID == a.LabTestGroupID).LabTestGroupDesc,
-                            labTestID = dbMed.LaboratoryExams.FirstOrDefault(x => x.labID == labID).labTestID,
-                            medtech = dbMed.LaboratoryExams.FirstOrDefault(b => b.labID == labID).medtech,
-                            pathologist = dbMed.LaboratoryExams.FirstOrDefault(c => c.labID == labID).pathologist
-                        });
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-
-        public ActionResult getCBCresult(string labID)
-        {
-            var data = dbMed.CBCs.Where(e => e.labID == labID).Select(a => new { 
-                                         a.bas,
-                                         a.cbcID,
-                                         a.dateTimeLog,
-                                         a.eos,
-                                         a.hct,
-                                         a.hgb,
-                                         a.labID,
-                                         a.lym,
-                                         a.mch,
-                                         a.mchc,
-                                         a.mcv,
-                                         a.mon,
-                                         a.neu,
-                                         a.personnelID,
-                                         a.plt,
-                                         a.rbc,
-                                         a.recNO,
-                                         a.wbc,
-                                         medtech = dbMed.LaboratoryExams.FirstOrDefault(b => b.labID == labID).medtech,
-                                         pathologist = dbMed.LaboratoryExams.FirstOrDefault(c => c.labID == labID).pathologist
-                                    });
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-
-        public ActionResult getUrinalysisResult(string labID)
-        {
-            var data = dbMed.Urinalysis.Where(e => e.labID == labID).Select(a => new { 
-                                            a.albumin,
-                                            a.amourphousPhospates,
-                                            a.amourphousUrates,
-                                            a.bacteria,
-                                            a.calciumOxalates,
-                                            a.coarseGranular,
-                                            a.color,
-                                            a.dateTimeLog,
-                                            a.epithelialCells,
-                                            a.fineGranular,
-                                            a.hyaline,
-                                            a.labID,
-                                            a.mucusThread,
-                                            a.others,
-                                            a.personnelID,
-                                            a.pregnancyTest,
-                                            a.pusCells,
-                                            a.pusCellsCast,
-                                            a.rbcCast,
-                                            a.rbcCells,
-                                            a.reaction,
-                                            a.recNo,
-                                            a.renalCells,
-                                            a.spGravity,
-                                            a.sugar,
-                                            a.transparency,
-                                            a.triplePhospates,
-                                            a.uricAcid,
-                                            a.urinalysisID,
-                                            a.waxyCast,
-                                            a.yeastCells,
-                                            medtech = dbMed.LaboratoryExams.FirstOrDefault(b => b.labID == labID).medtech,
-                                            pathologist = dbMed.LaboratoryExams.FirstOrDefault(c => c.labID == labID).pathologist
-                                        });
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-        
-        public ActionResult getBunGlycosylated(string labID)
-        {
-            var data = dbMed.BloodChems.SingleOrDefault(e => e.labID == labID);
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-
-        public ActionResult getECGResult(string labID)
-        {
-            var data = dbMed.ECGs.SingleOrDefault(e => e.labID == labID);
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-
-        public ActionResult getFecalysisResult(string labID)
-        {
-            var data = dbMed.Fecalysis.SingleOrDefault(e => e.labID == labID);
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-
-        public ActionResult getXrayResult(string labID)
-        {
-            var data = dbMed.MedCon_Xray.SingleOrDefault(e => e.labID == labID);
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-
-        public ActionResult get2dEchoResult(string labID)
-        {
-            var data = dbMed.TwoDechoes.SingleOrDefault(e => e.labID == labID);
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-
-        public ActionResult getUltrasoundResult(string labID)
-        {
-            var data = dbMed.Ultrasounds.SingleOrDefault(e => e.labID == labID);
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
 
         [HttpPost]
-        public ActionResult saveXray(MedCon_Xray result)
+        public ActionResult saveScannedLab(string qrCode, string labID, string file)
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (file != null)
                 {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
+                    string fileDir = fileuploadDir + qrCode + "\\";
+
+                    //if (!Directory.Exists(fileDir))
+                    //    Directory.CreateDirectory(fileDir);
+
+                    //// Check and count if file exist
+                    //DirectoryInfo di = new DirectoryInfo(fileDir);
+                    //var fileCount = di.EnumerateFiles(labID + "*").Count();
+
+                    //if(fileCount > 0)
+                    //{
+                    //    var randomID = new IDgenerator(labID);
+                    //    labID = labID + "_" + randomID.generateID.Substring(0, 4);
+                    //}
+
+                    var result = FileExistChecker(fileDir, labID);
+
+                    var fileData = file.Substring(22);
+                    byte[] bytes = Convert.FromBase64String(fileData);
+
+                    Image imageData;
+                    using (MemoryStream ms = new MemoryStream(bytes))
+                    {
+                        imageData = Image.FromStream(ms);
+                    }
+
+                    var fullPath = Path.Combine(fileDir, result.Item1 + ".png");
+                    imageData.Save(fullPath, System.Drawing.Imaging.ImageFormat.Png);
+
+                    if (result.Item2 == 0)
+                    {
+                        // Save tagging ni LaboratoryExam table
+                        //var tag = dbMed.LaboratoryExams.Find(labID);
+                        //tag.isEncoded = true;
+                        //tag.dateEncoded = DateTime.Now;
+                        //tag.encodedBy = Session["personnelID"].ToString();
+                        //dbMed.Entry(tag).State = EntityState.Modified;
+                        //var affectedRow = dbMed.SaveChanges();
+                        var tagResult = TagLabResult(labID);
+
+                        if (tagResult == "error")
+                            return Json(new { status = "error", msg = "Failed to save the scanned document." }, JsonRequestBehavior.AllowGet);
+
+                        //return Json(new { status = "success", msg = "Document is successfully saved" }, JsonRequestBehavior.AllowGet);
+                    }
                 }
-                else
-                {
-                    var xrayID = new IDgenerator(result.labID);
 
-                    // SAVE LAB RESULT OF XRAY
-                    result.medConXrayID = xrayID.generateID.Substring(0, 15);
-                    result.dateTimeLog = DateTime.Now;
-                    result.personnelID = Session["personnelID"].ToString();
-                    dbMed.MedCon_Xray.Add(result);
-
-                    // SAVE TAGGING OF TRUE TO ISENCODED FIELD (LABORATORY EXAM)
-                    var findLab = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLab.isEncoded = true;
-                    findLab.dateEncoded = DateTime.Now;
-                    dbMed.Entry(findLab).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
+                return Json(new { status = "success", msg = "Document is successfully saved" }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
+                return Json(new { status = "error", msg = "Something went wrong. Failed to retrieve data.", exceptionMessage = ex.InnerException.Message }, JsonRequestBehavior.AllowGet);
             }
+
         }
 
         [HttpPost]
-        public ActionResult saveUltrasound(Ultrasound result)
+        public ActionResult getScannedList(string qrCode, string labID)
+        {
+            var dir = fileuploadDir + qrCode + "\\";
+            List<fileInfo> fileNameList = new List<fileInfo>();
+
+            DirectoryInfo di = new DirectoryInfo(dir);
+
+            foreach (var fi in di.EnumerateFiles(labID + "*"))
+            {
+                fileNameList.Add(new fileInfo() { Name = fi.Name, Type =  fi.Extension});
+            }
+
+            return Json(fileNameList);
+        }
+
+        public class fileInfo
+        {
+            public string Name {get;set;}
+            public string Type { get; set; }
+        }
+
+        public ActionResult getScannedLabResult(string qrCode, string fileName)
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var ultraID = new IDgenerator(result.labID);
+                string fileDir = fileuploadDir + qrCode + "\\" + fileName;
+                var path = Path.Combine(fileDir);
+                string ext = Path.GetExtension(fileDir);
 
-                    // SAVE LAB RESULT OF XRAY
-                    result.ultraID = ultraID.generateID.Substring(0, 15);
-                    result.dateTimeLog = DateTime.Now;
-                    result.personnelID = Session["personnelID"].ToString();
-                    dbMed.Ultrasounds.Add(result);
-
-                    // SAVE TAGGING OF TRUE TO ISENCODED FIELD (LABORATORY EXAM)
-                    var findLab = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLab.isEncoded = true;
-                    findLab.dateEncoded = DateTime.Now;
-                    dbMed.Entry(findLab).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
+                return base.File(path, ext == ".pdf" ? "application/pdf" : "image/png");
             }
-            catch (Exception ex)
+            catch
             {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
+                return Content("File not found!");
+            }           
         }
 
         [HttpPost]
-        public ActionResult saveEcho(TwoDecho result)
+        public ActionResult DeleteImg(string qrCode, string fileName)
         {
             try
             {
-                if (!ModelState.IsValid)
+                string fileDir = fileuploadDir + qrCode + "\\" + fileName;
+                var path = Path.Combine(fileDir);
+                System.IO.File.Delete(path);
+
+                // Check and count if there are still lab files
+                DirectoryInfo di = new DirectoryInfo(fileuploadDir + qrCode);
+                var labID = fileName.Remove(fileName.Contains('_') ? fileName.IndexOf('_') : fileName.IndexOf('.'));
+
+                if(di.EnumerateFiles(labID + "*").Count() == 0)
                 {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
+                    // Untag LaboratoryExam table when there is no scanned results in folder
+                        var tag = dbMed.LaboratoryExams.Find(labID);
+                        tag.isEncoded = null;
+                        tag.dateEncoded = null;
+                        tag.encodedBy = null;
+                        dbMed.Entry(tag).State = EntityState.Modified;
+                        var affectedRow = dbMed.SaveChanges();
                 }
-                else
-                {
-                    var echoID = new IDgenerator(result.labID);
 
-                    // SAVE LAB RESULT OF XRAY
-                    result.echoID = echoID.generateID.Substring(0, 15);
-                    result.dateTimeLog = DateTime.Now;
-                    result.personnelID = Session["personnelID"].ToString();
-                    dbMed.TwoDechoes.Add(result);
-
-                    // SAVE TAGGING OF TRUE TO ISENCODED FIELD (LABORATORY EXAM)
-                    var findLab = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLab.isEncoded = true;
-                    findLab.dateEncoded = DateTime.Now;
-                    dbMed.Entry(findLab).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
+                return Json(new { status = "success", msg = "Laboratory result is successfully deleted." }, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception ex)
+            catch
             {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
+                return Content("File not found!");
+            }   
+        }
+
+        private Tuple<string, int> FileExistChecker(string fileDir, string labID)
+        {
+            if (!Directory.Exists(fileDir))
+                Directory.CreateDirectory(fileDir);
+
+            // Check and count if file exist
+            DirectoryInfo di = new DirectoryInfo(fileDir);
+            var fileCount = di.EnumerateFiles(labID + "*").Count();
+
+            if (fileCount > 0)
+            {
+                var randomID = new IDgenerator(labID);
+                labID = labID + "_" + randomID.generateID.Substring(0, 4);
             }
+
+            var tuple = new Tuple<string, int>(labID, fileCount);
+            return tuple;
+        }
+
+        private string TagLabResult(string labID)
+        {
+            // Save tagging ni LaboratoryExam table
+            var tag = dbMed.LaboratoryExams.Find(labID);
+            tag.isEncoded = true;
+            tag.dateEncoded = DateTime.Now;
+            tag.encodedBy = Session["personnelID"].ToString();
+            dbMed.Entry(tag).State = EntityState.Modified;
+            var affectedRow = dbMed.SaveChanges();
+
+            if (affectedRow == 0)
+                return "error";
+
+            return "success";
         }
 
         [HttpPost]
-        public ActionResult editXray([Bind(Exclude = "dateTimeLog,dateEdited")] MedCon_Xray result, EditRemarks EditRemarks)
+        public ActionResult UploadPdfResult(HttpPostedFileBase file, string qrCode, string labID)
         {
-            try
+            if (file != null && file.ContentLength > 0)
             {
-                if (!ModelState.IsValid)
+                string fileDir = fileuploadDir + qrCode + "\\";
+                var result = FileExistChecker(fileDir, labID);
+
+                string originalFilePath = Path.Combine(fileDir, result.Item1 + ".pdf");
+                file.SaveAs(originalFilePath);
+
+                // Compress the PDF file using iText 7
+                string compressedFilePath = Path.Combine(fileDir, result.Item1 + "_compressed.pdf");
+             //   CompressPdf(originalFilePath, compressedFilePath);
+
+                if (result.Item2 == 0)
                 {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
+                    var tagResult = TagLabResult(labID);
+
+                    if (tagResult == "error")
+                        return Json(new { status = "error", msg = "Failed to upload the document." }, JsonRequestBehavior.AllowGet);
                 }
-                else
-                {
-                    var data = dbMed.MedCon_Xray.Where(e => e.labID == result.labID).FirstOrDefault();
 
-                    // EDIT LAB RESULT OF FECALYSIS
-                    data.findings = result.findings;
-                    data.mcXrayDateResult = result.mcXrayDateResult;
-                    dbMed.Entry(data).State = EntityState.Modified;
-
-                    // SAVE PERSON WHO EDIT THE RECORD
-                    var edited = new EditRemark();
-                    string temp = Convert.ToString(DateTime.Now);
-                    var editID = new IDgenerator(temp);
-
-                    edited.editID = editID.generateID.Substring(0, 15);
-                    edited.labID = data.labID;
-                    edited.remarks = EditRemarks.remarks;
-                    edited.dateEdited = DateTime.Now;
-                    edited.editedBy = Session["personnelID"].ToString();
-                    dbMed.EditRemarks.Add(edited);
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
+                return Json(new { status = "success", msg = "File is uploaded and compressed successfully" }, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
+
+            return Json(new { status = "error", msg = "No file is selected" }, JsonRequestBehavior.AllowGet);
         }
 
-        [HttpPost]
-        public ActionResult editUltrasound([Bind(Exclude = "dateTimeLog,dateEdited")] Ultrasound result, EditRemarks EditRemarks)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var data = dbMed.Ultrasounds.Where(e => e.labID == result.labID).FirstOrDefault();
+        //private void CompressPdf(string inputFilePath, string outputFilePath)
+        //{
+        //    // Open the existing PDF
+        //    using (PdfReader reader = new PdfReader(inputFilePath))
+        //    {
+        //        // Create a PdfWriter for the output file
+        //        using (PdfWriter writer = new PdfWriter(outputFilePath))
+        //        {
+        //            // Create a PdfDocument object for reading and writing
+        //            using (PdfDocument pdfDoc = new PdfDocument(reader, writer))
+        //            {
+        //                // Perform compression (e.g., through optimization)
+        //                pdfDoc.Close();
+        //            }
+        //        }
+        //    }
+        //}
 
-                    // EDIT LAB RESULT OF FECALYSIS
-                    data.findings = result.findings;
-                    data.ultraDateResult = result.ultraDateResult;
-                    dbMed.Entry(data).State = EntityState.Modified;
+        //[HttpPost]
+        //public ActionResult UploadPdfResult(string file, string qrCode, string labID)
+        //{
+        //    // Verify that the user selected a file
+        //    if (file != null)
+        //    {
+        //        string fileDir = fileuploadDir + qrCode + "\\";
 
-                    // SAVE PERSON WHO EDIT THE RECORD
-                    var edited = new EditRemark();
-                    string temp = Convert.ToString(DateTime.Now);
-                    var editID = new IDgenerator(temp);
+        //        var result = FileExistChecker(fileDir, labID);
 
-                    edited.editID = editID.generateID.Substring(0, 15);
-                    edited.labID = data.labID;
-                    edited.remarks = EditRemarks.remarks;
-                    edited.dateEdited = DateTime.Now;
-                    edited.editedBy = Session["personnelID"].ToString();
-                    dbMed.EditRemarks.Add(edited);
+        //        var sub = file.Substring(file.IndexOf("base64") + 7);
+        //        byte[] bytes = Convert.FromBase64String(sub);
 
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
+        //        System.IO.FileStream stream = new FileStream(fileDir + result.Item1 + ".pdf", FileMode.CreateNew);
+        //        System.IO.BinaryWriter writer = new BinaryWriter(stream);
+        //        writer.Write(bytes, 0, bytes.Length);
+        //        writer.Close();
 
-        [HttpPost]
-        public ActionResult editEcho([Bind(Exclude = "dateTimeLog,dateEdited")] TwoDecho result, EditRemarks EditRemarks)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var data = dbMed.TwoDechoes.Where(e => e.labID == result.labID).FirstOrDefault();
+        //        if (result.Item2 == 0)
+        //        {
+        //            var tagResult = TagLabResult(labID);
 
-                    // EDIT LAB RESULT OF FECALYSIS
-                    data.findings = result.findings;
-                    data.echoDateResult = result.echoDateResult;
-                    dbMed.Entry(data).State = EntityState.Modified;
+        //            if (tagResult == "error")
+        //                return Json(new { status = "error", msg = "Failed to upload the document." }, JsonRequestBehavior.AllowGet);
+        //        }
 
-                    // SAVE PERSON WHO EDIT THE RECORD
-                    var edited = new EditRemark();
-                    string temp = Convert.ToString(DateTime.Now);
-                    var editID = new IDgenerator(temp);
+        //        return Json(new { status = "success", msg = "File is uploaded successfully" }, JsonRequestBehavior.AllowGet);
 
-                    edited.editID = editID.generateID.Substring(0, 15);
-                    edited.labID = data.labID;
-                    edited.remarks = EditRemarks.remarks;
-                    edited.dateEdited = DateTime.Now;
-                    edited.editedBy = Session["personnelID"].ToString();
-                    dbMed.EditRemarks.Add(edited);
+        //    }
 
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        [HttpPost]
-        public ActionResult saveHBA1C(HbA1c result, string medTech, string pathologist)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var hba1cID = new IDgenerator(result.labID);
-
-                    // SAVE LAB RESULT OF XRAY
-                    result.hba1cID = hba1cID.generateID.Substring(0, 15);
-                    result.dateTimeLog = DateTime.Now;
-                    result.personnelID = Session["personnelID"].ToString();
-                    dbMed.HbA1c.Add(result);
-
-                    // SAVE TAGGING OF TRUE TO ISENCODED FIELD (LABORATORY EXAM)
-                    var findLab = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLab.isEncoded = true;
-                    findLab.medtech = medTech;
-                    findLab.pathologist = pathologist;
-                    findLab.dateEncoded = DateTime.Now;
-                    dbMed.Entry(findLab).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
-
-        public ActionResult getHbA1cResult(string labID)
-        {
-            var data = dbMed.HbA1c.Where(e => e.labID == labID).Select(a => new { 
-                                a.hba1cID,
-                                a.labID,
-                                a.personnelID,
-                                a.result,
-                                a.dateTimeLog,
-                                medtech = dbMed.LaboratoryExams.FirstOrDefault(b => b.labID == labID).medtech,
-                                pathologist = dbMed.LaboratoryExams.FirstOrDefault(c => c.labID == labID).pathologist
-                            });
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-
-        [HttpPost]
-        public ActionResult editHBA1C([Bind(Exclude = "dateTimeLog,dateEdited")] HbA1c result, string medTech, string pathologist)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var temp = string.Join(" | ", ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage));
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Model State Not Valid" + temp);
-                }
-                else
-                {
-                    var data = dbMed.HbA1c.Where(e => e.labID == result.labID).FirstOrDefault();
-
-                    // EDIT LAB RESULT OF FECALYSIS
-                    data.result = result.result;
-                    dbMed.Entry(data).State = EntityState.Modified;
-
-                    var findLabExam = dbMed.LaboratoryExams.SingleOrDefault(a => a.labID == result.labID);
-                    findLabExam.medtech = medTech;
-                    findLabExam.pathologist = pathologist;
-                    dbMed.Entry(findLabExam).State = EntityState.Modified;
-
-                    dbMed.SaveChanges();
-                }
-                return new HttpStatusCodeResult(HttpStatusCode.OK, "Successfully Save");
-            }
-            catch (Exception ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.InnerException.Message);
-            }
-        }
+        //    return Json(new { status = "error", msg = "No file is selected" }, JsonRequestBehavior.AllowGet);
+        //}
     }
 }

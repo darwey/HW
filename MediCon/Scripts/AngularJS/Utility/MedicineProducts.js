@@ -97,7 +97,7 @@
             s.info = angular.copy(a);
             $('#unitSelect').val(a.unitID);
             $('#unitSelect').trigger('change');
-            $('#measurementSelect').val(a.measureID);
+            $('#measurementSelect').val(a.measurementID);
             $('#measurementSelect').trigger('change');
             s.$apply();
         });

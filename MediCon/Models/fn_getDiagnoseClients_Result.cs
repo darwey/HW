@@ -29,6 +29,7 @@ namespace MediCon.Models
         public string middleName { get; set; }
         public string extName { get; set; }
         public string fullNameLast { get; set; }
+        public string fullNameTitle { get; set; }
         public string shortDepartmentName { get; set; }
         public string brgyPermAddress { get; set; }
         public string citymunPermAddress { get; set; }

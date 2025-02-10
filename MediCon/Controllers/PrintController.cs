@@ -50,6 +50,9 @@ namespace MediCon.Controllers
 
         public class PatientInfo
         {
+
+            public string consultID { get; set; }
+            public string fullNameLast { get; set; }
             public string lastName { get; set; }
             public string firstName { get; set; }
             public string middleName { get; set; }
@@ -58,7 +61,11 @@ namespace MediCon.Controllers
             public string brgyDesc { get; set; }
             public string citymunDesc { get; set; }
             public int age { get; set; }
+            public string sex { get; set; }
             public string office { get; set; }
+            public string positionTitle { get; set; }
+            
+
         }
 
         public class PhysicianInfo
@@ -70,5 +77,55 @@ namespace MediCon.Controllers
             public string title { get; set; }
             public string licenseNo { get; set; }
         }
+
+	public ActionResult printTransmittal(string dateCollected)
+        {
+            Session["dateCollected"] = dateCollected;
+            return Content("YES");
+        }
+
+    public ActionResult printLabReq(PatientInfo patient, PhysicianInfo physician)
+    {
+        var refID = db.Referrals.FirstOrDefault(r => r.consultID == patient.consultID).calendarID;
+        var hospID = db.HospitalCalendars.FirstOrDefault(h => h.calendarID == refID).hospitalID;
+        var sd = db.HospitalCalendars.FirstOrDefault(h => h.calendarID == refID).scheduleDate;
+        string scheduleDate = sd.Value.ToString("MMMM dd, yyyy");
+
+      
+        var hospName = db.Hospitals.FirstOrDefault(n => n.hospitalID == hospID).hospitalName;
+
+        Session["consultID"] = patient.consultID;
+        Session["fullNameLast"] = patient.fullNameLast;
+        Session["sex"] = patient.sex == null ? "" : patient.sex;
+        Session["age"] = patient.age;
+        Session["hospName"] = hospName == null ? "" : hospName;
+        Session["scheduleDate"] = scheduleDate == null ? "" : scheduleDate;
+        Session["office"] = patient.office == null ? "" : patient.office;
+        Session["positionTitle"] = patient.positionTitle == null ? "" : patient.positionTitle;
+
+        Session["personnel_firstName"] = physician.personnel_firstName;
+        Session["personnel_midInit"] = physician.personnel_midInit == null ? "" : physician.personnel_midInit;
+        Session["personnel_lastName"] = physician.personnel_lastName;
+        Session["personnel_extName"] = physician.personnel_extName == null ? "" : physician.personnel_extName;
+        Session["personnel_title"] = physician.title == null ? "" : physician.title;
+        Session["personnel_licenseNo"] = physician.licenseNo == null ? "" : physician.licenseNo;
+
+        return Content("YES");
+    }
+
+    public ActionResult printReading(string consultDate)
+    {
+        var cDate = "";
+        DateTime date;
+        if (DateTime.TryParse(consultDate, out date))
+        {
+           cDate = date.ToString("MMMM dd, yyyy");
+        }
+
+        Session["consultDate"] = consultDate;
+        Session["cDate"] = cDate;
+        return Content("YES");
+    }
+
     }
 }
